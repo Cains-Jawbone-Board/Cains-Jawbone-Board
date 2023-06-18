@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/cains-jawbone-board/static/css/main.7e46df45.css",
+    "main.js": "/cains-jawbone-board/static/js/main.900b533f.js",
+    "static/js/787.06f26ae5.chunk.js": "/cains-jawbone-board/static/js/787.06f26ae5.chunk.js",
+    "index.html": "/cains-jawbone-board/index.html",
+    "main.7e46df45.css.map": "/cains-jawbone-board/static/css/main.7e46df45.css.map",
+    "main.900b533f.js.map": "/cains-jawbone-board/static/js/main.900b533f.js.map",
+    "787.06f26ae5.chunk.js.map": "/cains-jawbone-board/static/js/787.06f26ae5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7e46df45.css",
+    "static/js/main.900b533f.js"
+  ]
+}
