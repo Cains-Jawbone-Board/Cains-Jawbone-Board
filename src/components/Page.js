@@ -61,11 +61,6 @@ export default class Page extends React.Component {
         }, () => this.state.board.updateArrows(this.state.page));
     }
 
-    contextMenu(e) {
-        e.preventDefault();
-        alert('context menu');
-    }
-
     changeHighlight(highlight) {
         this.setState({ highlight: highlight });
     }
@@ -78,7 +73,6 @@ export default class Page extends React.Component {
                 onDrag={(e) => this.updateDragCoords(e)}
                 onDragEnd={(e) => this.updateDragCoords(e)}
                 onClick={() => this.state.board.openDrawer(this.state.page)}
-                onContextMenu={(e) => this.contextMenu(e)}
                 style={{
                     opacity: this.state.highlight ? 1 : 0.5,
                     position: 'absolute',
