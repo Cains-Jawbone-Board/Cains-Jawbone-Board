@@ -43,7 +43,7 @@ export default class HelpPopup extends React.Component {
 
                 <Box>
                     <h3>How does the board work? 🤔</h3>
-                    <p>By clicking with the mouse left button on a circle with a number, you can see the respective text. Below you will also find the sections that you can <b>currently</b> use to highlight sections of the text.</p>
+                    <p>By clicking with the mouse left button on a circle with a number, you can see the respective text. Below you will also find the sections that you can use to highlight sections of the text. You can also use the dropdown on the top of the menu if you think two pages are one after another 😉</p>
                     <p>You can also drag the circles (using the mouse left button) if you prefer to rearrange them!</p>
                 </Box>,
 
@@ -68,7 +68,6 @@ export default class HelpPopup extends React.Component {
                     <ul>
                         <li>Allow to search for the entries that you created</li>
                         <li>When selecting one of the entries below the page's text, highlight the text above</li>
-                        <li>Allow to draw arrows between two different pages</li>
                     </ul>
 
                     <p>If you have any more ideas, please do not hesitate to suggest them! 😃 Good luck everyone!</p>
