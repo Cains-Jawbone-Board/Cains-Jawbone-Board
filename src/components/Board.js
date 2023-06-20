@@ -3,6 +3,8 @@ import Page from "./Page";
 
 import Box from "@mui/material/Box";
 
+import Arrow from "./Arrow";
+
 const PLAIN_TEXTS = [
     "I sit down alone at the appointed table and take up my pen to give all whom it may con- cern an exact account of what may happen. Call me nervous, call me fey, if you will; at least this little pen, this mottled black and silver Aquarius, with its nib specially tempered to my order in Amsterdam, is greedy. It has not had much work since it flew so nimbly for the dead old man. As I watch the sea, Casy Ferris passes with down-dropped eyes. Of course, to-day is the day. Her father reminds me of a valetudi- narian walrus. But she has, I suppose, to have somebody. St. Lazarus-in-the-Chine is full, no doubt, already. I think she is rash ; but it is none of my business. Where about the graves of the martyrs the whaups are crying, my heart remembers how. Strange that he comes into my head so much to-day. I hope it's over some flotsam fish that the birds are making whau- pee. But all the nice gulls love a sailor. Ugh.",
     "I plunged for the last time. The few remaining figures and letters swam as they came up to me. Then I took them in. There were no more. I glanced about me. I felt I was getting my money's worth. London is like that ; it accepts the wanderer home with a sort of warm indifference. The woman's beauty was, I surmised, profound ; her creamy dress, contrasting with her vivid colouring, showed to me, though more as white against a gay brick sepulchre than snow against roses. Yes it was a dreadful beauty, as far as I could see, and I recalled the stark phrases : Which swept an hundred thousand souls away ; yet I alive. But he was not ; the writer had strangely died to-day. And again they continued this wretched course three or four days : but they were every one of them carried into the great pit before it was quite filled up. Where was Henry? Ah, he was standing by her, close enough to touch the small buoyant face that topped her pillared neck most like a bell-flower on its bed. Would he appreciate?",
@@ -112,9 +114,24 @@ export default class Board extends React.Component {
         this.state = {
             screen: props.screen,
             searchText: "",
+
+            arrows: {},
+            arrowsRefs: {},
             pages: [],
             refs: [],
         };
+    }
+
+    getAllCoordinates() {
+        var coordinates = [];
+        for (var i = 0; i < this.state.refs.length; i++) {
+            coordinates.push(this.state.refs[i].current.getMargins());
+        }
+        return coordinates;
+    }
+
+    updatePageCoords(index, x, y) {
+        this.state.refs[index].current.updateCoords(x, y);
     }
 
     componentDidMount() {
@@ -122,7 +139,6 @@ export default class Board extends React.Component {
     }
 
     search(text) {
-        console.log(text);
         this.setState({
             searchText: text,
         }, this.changeHighlight);
@@ -133,15 +149,114 @@ export default class Board extends React.Component {
     }
 
     checkHighlight(page) {
-        if (PLAIN_TEXTS[page].includes(this.state.searchText)) {
-            console.log("Highlighting " + page + " "+ PLAIN_TEXTS[page] + " " + this.state.searchText);
-        }
         return PLAIN_TEXTS[page].includes(this.state.searchText);
     }
 
     changeHighlight() {
         for (let i = 0; i < 100; i++) {
             this.state.refs[i].current.changeHighlight(this.checkHighlight(i));
+        }
+    }
+
+    loadArrows(connections) {
+        var arrows = {};
+        var arrowsRefs = {};
+
+        for (let i = 0; i < connections.length; i++) {
+            var fromPage = connections[i][0];
+            var toPage = connections[i][1];
+
+            var startPoint = this.state.refs[fromPage-1].current.getCoords(true);
+            var endPoint = this.state.refs[toPage-1].current.getCoords();
+
+            var ref = React.createRef();
+
+            arrows[[fromPage, toPage]] = <Arrow key={`${fromPage},${toPage}`} ref={ref} startPoint={startPoint} endPoint={endPoint}/>
+            arrowsRefs[[fromPage, toPage]] = ref;
+        }
+
+        this.setState({
+            arrows: arrows,
+            arrowsRefs: arrowsRefs,
+        });
+    }
+
+    createArrow(fromPage, toPage) {
+        var arrows = {...this.state.arrows};
+        var arrowsRefs = {...this.state.arrowsRefs};
+
+        var keys = Object.keys(arrows);
+        for (let i = 0; i < keys.length; i++) {
+            if (parseInt(keys[i].split(',')[0]) === fromPage) {
+                delete arrows[keys[i]];
+                delete arrowsRefs[keys[i]];
+            }
+
+            if (parseInt(keys[i].split(',')[1]) === toPage) {
+                delete arrows[keys[i]];
+                delete arrowsRefs[keys[i]];
+            }
+        }
+
+        if (toPage !== 0) {
+            var startPoint = this.state.refs[fromPage-1].current.getCoords(true);
+            var endPoint = this.state.refs[toPage-1].current.getCoords();
+
+            var ref = React.createRef();
+    
+            arrows[[fromPage, toPage]] = <Arrow key={`${fromPage},${toPage}`} ref={ref} startPoint={startPoint} endPoint={endPoint}/>
+            arrowsRefs[[fromPage, toPage]] = ref;
+        }
+
+        this.setState({
+            arrows: arrows,
+            arrowsRefs: arrowsRefs,
+        });
+    }
+
+    getConnection(page) {
+        var keys = Object.keys(this.state.arrowsRefs);
+
+        for (let i = 0; i < keys.length; i++) {
+            var fromPage = parseInt(keys[i].split(',')[0]);
+            var toPage = parseInt(keys[i].split(',')[1]);
+
+            if (fromPage === page) {
+                return toPage;
+            }
+        }
+
+        return 0;
+    }
+
+    getAllConnections() {
+        var connections = [];
+
+        var keys = Object.keys(this.state.arrowsRefs);
+
+        for (let i = 0; i < keys.length; i++) {
+            var fromPage = parseInt(keys[i].split(',')[0]);
+            var toPage = parseInt(keys[i].split(',')[1]);
+
+            connections.push([fromPage, toPage]);
+        }
+
+        return connections;
+    }
+
+    updateArrows(page) {
+        var keys = Object.keys(this.state.arrowsRefs);
+
+        for (let i = 0; i < keys.length; i++) {
+            var fromPage = parseInt(keys[i].split(',')[0]);
+            var toPage = parseInt(keys[i].split(',')[1]);
+
+            if (fromPage === page || toPage === page) {
+                var startPoint = this.state.refs[fromPage-1].current.getCoords(true);
+                var endPoint = this.state.refs[toPage-1].current.getCoords();
+
+                this.state.arrowsRefs[keys[i]].current.updatePoint(startPoint, endPoint);
+            }
         }
     }
 
@@ -187,6 +302,12 @@ export default class Board extends React.Component {
             >
                 {
                     this.state.pages
+                }
+
+                {
+                    Object.keys(this.state.arrows).map((key) => (
+                        this.state.arrows[key]
+                    ))
                 }
             </Box>
         );

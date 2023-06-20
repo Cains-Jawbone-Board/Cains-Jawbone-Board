@@ -7,7 +7,6 @@ export default class Page extends React.Component {
         super(props);
         this.state = {
             board: props.board,
-
             highlight: props.highlight,
 
             page: props.page,
@@ -23,6 +22,24 @@ export default class Page extends React.Component {
         };
     }
 
+    getCoords(from = false) {
+        if (from) {
+            return {
+                x: this.state.x + this.state.size,
+                y: this.state.y + this.state.size / 2
+            };
+        } else {
+            return {
+                x: this.state.x,
+                y: this.state.y + this.state.size / 2
+            };
+        }
+    }
+
+    getMargins() {
+        return [this.state.x, this.state.y];
+    }
+
     setDragDeviation(e) {
         this.setState({
             dx: e.pageX - this.state.x,
@@ -30,11 +47,18 @@ export default class Page extends React.Component {
         });
     }
 
-    updateCoords(e) {
+    updateCoords(x, y) {
+        this.setState({
+            x: x,
+            y: y
+        });
+    }
+
+    updateDragCoords(e) {
         this.setState({
             x: e.pageX - this.state.dx,
             y: e.pageY - this.state.dy
-        });
+        }, () => this.state.board.updateArrows(this.state.page));
     }
 
     contextMenu(e) {
@@ -51,8 +75,8 @@ export default class Page extends React.Component {
             <Box
                 draggable
                 onDragStart={(e) => this.setDragDeviation(e)}
-                onDrag={(e) => this.updateCoords(e)}
-                onDragEnd={(e) => this.updateCoords(e)}
+                onDrag={(e) => this.updateDragCoords(e)}
+                onDragEnd={(e) => this.updateDragCoords(e)}
                 onClick={() => this.state.board.openDrawer(this.state.page)}
                 onContextMenu={(e) => this.contextMenu(e)}
                 style={{

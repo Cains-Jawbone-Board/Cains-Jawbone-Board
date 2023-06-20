@@ -8,6 +8,9 @@ import Divider from '@mui/material/Divider';
 import Icon from '@mui/material/Icon';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
+import EastIcon from '@mui/icons-material/East';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
@@ -32,6 +35,7 @@ export default class PageDrawer extends React.Component {
             width: props.width,
             screen: props.screen,
             sections: {},
+            connection: 0,
 
             tooltip: false,
             tooltipX: 0,
@@ -46,12 +50,13 @@ export default class PageDrawer extends React.Component {
         this.tooltip = React.createRef();
     }
 
-    setPageDetails(page, text, sections) {
+    setPageDetails(page, text, sections, connection) {
         this.setState({
             page: page,
             text: text,
             sections: sections,
             tooltip: false,
+            connection: connection,
         });
     }
 
@@ -144,6 +149,13 @@ export default class PageDrawer extends React.Component {
         return uniqueEntries;
     }
 
+    nextPageChanged(e) {
+        this.state.screen.createConnection(this.state.page, e.target.value);
+        this.setState({
+            connection: e.target.value,
+        })
+    }
+
     render() {
         return (
             <Drawer
@@ -213,7 +225,24 @@ export default class PageDrawer extends React.Component {
 
 
                 <DrawerHeader>
-                    <h3>Page {this.state.page}</h3>
+                    <Box sx={{display: 'flex', flexDirection: 'row', flexGrow: 1, alignItems: 'center'}}>
+                        <h3>Page {this.state.page}</h3>
+                        <Icon sx={{marginLeft: '10px', marginRight: '10px'}}><EastIcon /></Icon>
+                        <h3>Page </h3>
+                        <Select value={this.state.connection ? this.state.connection : 0} sx={{marginLeft: '10px'}} size="small" onChange={(e) => this.nextPageChanged(e)}>
+                            <MenuItem value={0}>None</MenuItem>
+                            {
+                                Array.from({length: 100}, (_, i) => i + 1).map((page) => {
+                                    if (page !== this.state.page) {
+                                        return (
+                                            <MenuItem key={page} value={page}>{page}</MenuItem>
+                                        )
+                                    }
+                                    return null;
+                                })
+                            }
+                        </Select>
+                    </Box>
                     <IconButton onClick={() => this.handleDrawerClose()}>
                         <CloseRoundedIcon />
                     </IconButton>

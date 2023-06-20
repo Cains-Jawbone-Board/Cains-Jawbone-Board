@@ -188,7 +188,8 @@ export default class Screen extends React.Component {
     }
 
     openDrawer(page) {
-        this.drawer.current.setPageDetails(page, TEXTS[page - 1], this.state.sections[page] || {});
+        var conn = this.board.current.getConnection(page);
+        this.drawer.current.setPageDetails(page, TEXTS[page - 1], this.state.sections[page] || {}, conn);
         this.handleDrawerOpen();
     }
 
@@ -253,7 +254,23 @@ export default class Screen extends React.Component {
             var reader = new FileReader();
             reader.onload = (e) => {
                 var data = JSON.parse(e.target.result);
-                this.setState({sections: data});
+
+                var coords = data["coordinates"] || [];
+                for (let i = 0; i < coords.length; i++) {
+                    this.board.current.updatePageCoords(i, coords[i][0], coords[i][1]);
+                }
+
+                delete data["coordinates"];
+
+                this.board.current.loadArrows(data["arrows"] || []);
+
+                delete data["arrows"];
+
+                this.setState({sections: data}, () => {
+                    for (let i = 0; i <= 100; i++) {
+                        this.board.current.updateArrows(i);
+                    }
+                });
             };
             reader.readAsText(e.target.files[0]);
         };
@@ -261,7 +278,14 @@ export default class Screen extends React.Component {
     }
 
     downloadFile() {
-        var data = JSON.stringify(this.state.sections);
+        var arrows = this.board.current.getAllConnections();
+        var coordinates = this.board.current.getAllCoordinates();
+        var sections = this.state.sections;
+
+        sections["arrows"] = arrows;
+        sections["coordinates"] = coordinates;
+
+        var data = JSON.stringify(sections);
         var blob = new Blob([data], {type: 'application/json'});
         var url = URL.createObjectURL(blob);
 
@@ -269,6 +293,10 @@ export default class Screen extends React.Component {
         a.href = url;
         a.download = 'CJB.json';
         a.click();
+    }
+
+    createConnection(fromPage, toPage) {
+        this.board.current.createArrow(fromPage, toPage);
     }
 
     render() {
