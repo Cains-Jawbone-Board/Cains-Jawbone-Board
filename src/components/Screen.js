@@ -259,14 +259,30 @@ export default class Screen extends React.Component {
                 for (let i = 0; i < coords.length; i++) {
                     this.board.current.updatePageCoords(i, coords[i][0], coords[i][1]);
                 }
-
                 delete data["coordinates"];
 
                 this.board.current.loadArrows(data["arrows"] || []);
-
                 delete data["arrows"];
 
-                this.setState({sections: data}, () => {
+                var filters = {};
+
+                var pages = Object.keys(data);
+                for (let i = 0; i < pages.length; i++) {
+                    var page = pages[i];
+                    var sections = Object.keys(data[page]);
+                    for (let j = 0; j < sections.length; j++) {
+                        var section = sections[j];
+                        var entries = data[page][section];
+                        for (let k = 0; k < entries.length; k++) {
+                            var entry = entries[k];
+                            if (!filters[section]) filters[section] = [];
+                            if (!filters[section].includes(entry["Entry"])) filters[section].push(entry["Entry"]);
+                        }
+                    }
+                }
+
+
+                this.setState({sections: data, filters: filters}, () => {
                     for (let i = 0; i <= 100; i++) {
                         this.board.current.updateArrows(i);
                     }

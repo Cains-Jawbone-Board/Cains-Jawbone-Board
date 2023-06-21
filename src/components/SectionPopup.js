@@ -105,7 +105,7 @@ export default class SectionPopup extends React.Component {
                         <p><b>Or choose an existing one</b></p>
                         <FormControl fullWidth>
                             <InputLabel>Entry</InputLabel>
-                            <Select ref={this.dropdown}>
+                            <Select ref={this.dropdown} value={this.state.dropOption ? this.state.dropOption : ""} onChange={(e) => this.updateDropdown(e)}>
                                 {
                                     this.state.filters.map((filter, index) => {
                                         return (
