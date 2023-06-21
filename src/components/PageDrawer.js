@@ -249,8 +249,8 @@ export default class PageDrawer extends React.Component {
                 </DrawerHeader>
                 <Box
                     sx={{
-                        marginLeft: '10px',
-                        marginRight: '10px',
+                        marginLeft: '15px',
+                        marginRight: '15px',
                     }}>
 
                     <Divider />
@@ -260,6 +260,7 @@ export default class PageDrawer extends React.Component {
                         onMouseUp={(e) => this.checkIfTextSelected(e)}
                         sx={{
                             fontSize: '12px',
+                            textAlign: 'justify',
                         }}
                     >
                         {this.state.text}
