@@ -51,7 +51,7 @@ export default class SectionPopup extends React.Component {
     }
 
     toogleOpen() {
-        this.setState({ open: !this.state.open });
+        this.setState({ open: !this.state.open, dropOption: "", entry: "" });
     }
 
     updateFields(page, section, selectedText, filters) {
