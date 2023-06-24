@@ -2,33 +2,37 @@
     font-family: "Montserrat";
 }
 
-.literature {
+.Literature {
     background-color: #0c255e66;
-    display: inline-block;
     margin: 0;
+    padding: 0 5px;
     border-radius: 3px;
 }
 
-.characters {
+.Characters {
     background-color: #11770166;
-    display: inline-block;
     margin: 0;
+    padding: 0 5px;
+    border-radius: 3px;
 }
 
-.dates {
+.Dates {
     background-color: #e6b40066;
-    display: inline-block;
     margin: 0;
+    padding: 0 5px;
+    border-radius: 3px;
 }
 
-.locations {
+.Locations {
     background-color: #f5821666;
-    display: inline-block;
     margin: 0;
+    padding: 0 5px;
+    border-radius: 3px;
 }
 
-.other-notes {
+.Other-Notes {
     background-color: #e2619f66;
-    display: inline-block;
     margin: 0;
+    padding: 0 5px;
+    border-radius: 3px;
 }

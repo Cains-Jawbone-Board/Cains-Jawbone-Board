@@ -50,18 +50,79 @@ export default class PageDrawer extends React.Component {
         this.tooltip = React.createRef();
     }
 
+    addSectionsHighlight(text, sections, depth = 0) {
+        var sectionsCopy = {...sections};       
+        var newChildren = [];
+        
+        if (typeof text === "string") {
+            var components = [text];
+
+            var sectionsKeys = Object.keys(sectionsCopy);
+            for (let i = 0; i < sectionsKeys.length; i++) {
+                var section = sectionsKeys[i];
+                var keeping = [];
+                
+                for (let j = 0; j < sectionsCopy[section].length; j++) {
+                    var entryText = sectionsCopy[section][j]["Text"].split("\n");
+                    
+                    for (let k = 0; k < components.length; k++) {
+                        var component = components[k];
+                        
+                        if (typeof component === "string") {
+                            for (let l = 0; l < entryText.length; l++) {
+                                if (component.includes(entryText[l])) {
+                                    var splitted = component.split(entryText[l]);
+                                    components.splice(k, 1, splitted[0], <span key={entryText[l] + k} className={section.replace(" ", "-")}>{entryText[l]}</span>, splitted.slice(1).join(entryText[l]));
+                                    k += 2;
+                                } else {
+                                    keeping.push(component);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                sectionsCopy[section] = keeping;
+            }
+
+            return components;
+
+        } else if (text.type === "br") {
+            return text;
+
+        } else {
+            if (typeof text.props.children === "string") {
+                newChildren.push(this.addSectionsHighlight(text.props.children, sectionsCopy, depth + 1));
+            } else {
+                for (let i = 0; i < text.props.children.length; i++) {
+                    var child = text.props.children[i];
+                    newChildren.push(this.addSectionsHighlight(child, sectionsCopy, depth + 1));
+                }
+            }
+        }
+
+        if (depth === 0) {
+            return React.cloneElement(text, null, newChildren);
+        } else {
+            return newChildren;
+        }
+    }
+
     setPageDetails(page, text, sections, connection) {
+        var newText = this.addSectionsHighlight(text, sections);
         this.setState({
             page: page,
-            text: text,
+            text: newText,
             sections: sections,
             tooltip: false,
             connection: connection,
         });
     }
 
-    updateSections(sections) {
+    updateSections(text, sections) {
+        var newText = this.addSectionsHighlight(text, sections);
         this.setState({
+            text: newText,
             sections: sections,
         });
     }

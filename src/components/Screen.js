@@ -242,7 +242,7 @@ export default class Screen extends React.Component {
         this.setState({sections: sections, filters: filters});
 
         if (this.state.open) {
-            this.drawer.current.updateSections(this.state.sections[page] || {});
+            this.drawer.current.updateSections(TEXTS[page-1], this.state.sections[page] || {});
         }
     }
 
