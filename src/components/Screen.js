@@ -175,7 +175,8 @@ export default class Screen extends React.Component {
 
             fileLoaded: false,
             fileHandle: null,
-            writable: null
+            writable: null,
+            saveMessage: "Progress saved!",
         };
 
         this.drawer = React.createRef();
@@ -253,6 +254,7 @@ export default class Screen extends React.Component {
     }
 
     async updateFileContents() {
+        this.setState({saveMessage: "Saving..."});
         var arrows = this.board.current.getAllConnections();
         var coordinates = this.board.current.getAllCoordinates();
         var sections = this.state.sections;
@@ -265,6 +267,7 @@ export default class Screen extends React.Component {
         const writable = await this.state.fileHandle.createWritable();
         await writable.write(data);
         await writable.close();
+        this.setState({saveMessage: "Progress saved!"});
     }
 
     async createNewFile() {
@@ -361,6 +364,12 @@ export default class Screen extends React.Component {
                             />
 
                         </Box>
+
+                        {
+                            (this.state.fileLoaded)
+                            ? <span>{this.state.saveMessage}</span>
+                            : null
+                        }
     
                         <IconButton
                             size="large"
