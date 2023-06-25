@@ -211,7 +211,7 @@ export default class Board extends React.Component {
         this.setState({
             arrows: arrows,
             arrowsRefs: arrowsRefs,
-        });
+        }, () => this.state.screen.updateFileContents());
     }
 
     getConnection(page) {
@@ -244,7 +244,7 @@ export default class Board extends React.Component {
         return connections;
     }
 
-    updateArrows(page) {
+    updateArrows(page, end=false) {
         var keys = Object.keys(this.state.arrowsRefs);
 
         for (let i = 0; i < keys.length; i++) {
@@ -258,6 +258,8 @@ export default class Board extends React.Component {
                 this.state.arrowsRefs[keys[i]].current.updatePoint(startPoint, endPoint);
             }
         }
+
+        if (end) this.state.screen.updateFileContents();
     }
 
     loadPages() {

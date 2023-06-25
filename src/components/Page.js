@@ -61,6 +61,13 @@ export default class Page extends React.Component {
         }, () => this.state.board.updateArrows(this.state.page));
     }
 
+    endDragCoords(e) {
+        this.setState({
+            x: e.pageX - this.state.dx,
+            y: e.pageY - this.state.dy
+        }, () => this.state.board.updateArrows(this.state.page, true));
+    }
+
     changeHighlight(highlight) {
         this.setState({ highlight: highlight });
     }
@@ -71,7 +78,7 @@ export default class Page extends React.Component {
                 draggable
                 onDragStart={(e) => this.setDragDeviation(e)}
                 onDrag={(e) => this.updateDragCoords(e)}
-                onDragEnd={(e) => this.updateDragCoords(e)}
+                onDragEnd={(e) => this.endDragCoords(e)}
                 onClick={() => this.state.board.openDrawer(this.state.page)}
                 style={{
                     opacity: this.state.highlight ? 1 : 0.5,

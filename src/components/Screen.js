@@ -6,14 +6,12 @@ import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
-import DownloadForOfflineRoundedIcon from '@mui/icons-material/DownloadForOfflineRounded';
-import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 
 import PageDrawer from './PageDrawer';
 import Board from './Board';
 import SectionPopup from './SectionPopup';
 import HelpPopup from './HelpPopup';
-import { TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 
 const drawerWidth = 400;
 
@@ -174,6 +172,10 @@ export default class Screen extends React.Component {
             filters: {},
 
             searchText: "",
+
+            fileLoaded: false,
+            fileHandle: null,
+            writable: null
         };
 
         this.drawer = React.createRef();
@@ -239,61 +241,18 @@ export default class Screen extends React.Component {
         if (!filters[section]) filters[section] = [];
         if (!filters[section].includes(name)) filters[section].push(name);
 
-        this.setState({sections: sections, filters: filters});
+        this.setState({sections: sections, filters: filters}, () => this.updateFileContents());
 
         if (this.state.open) {
             this.drawer.current.updateSections(TEXTS[page-1], this.state.sections[page] || {});
         }
     }
 
-    loadFile() {
-        var file = document.createElement('input');
-        file.type = 'file';
-        file.accept = '.json';
-        file.onchange = (e) => {
-            var reader = new FileReader();
-            reader.onload = (e) => {
-                var data = JSON.parse(e.target.result);
-
-                var coords = data["coordinates"] || [];
-                for (let i = 0; i < coords.length; i++) {
-                    this.board.current.updatePageCoords(i, coords[i][0], coords[i][1]);
-                }
-                delete data["coordinates"];
-
-                this.board.current.loadArrows(data["arrows"] || []);
-                delete data["arrows"];
-
-                var filters = {};
-
-                var pages = Object.keys(data);
-                for (let i = 0; i < pages.length; i++) {
-                    var page = pages[i];
-                    var sections = Object.keys(data[page]);
-                    for (let j = 0; j < sections.length; j++) {
-                        var section = sections[j];
-                        var entries = data[page][section];
-                        for (let k = 0; k < entries.length; k++) {
-                            var entry = entries[k];
-                            if (!filters[section]) filters[section] = [];
-                            if (!filters[section].includes(entry["Entry"])) filters[section].push(entry["Entry"]);
-                        }
-                    }
-                }
-
-
-                this.setState({sections: data, filters: filters}, () => {
-                    for (let i = 0; i <= 100; i++) {
-                        this.board.current.updateArrows(i);
-                    }
-                });
-            };
-            reader.readAsText(e.target.files[0]);
-        };
-        file.click();
+    createConnection(fromPage, toPage) {
+        this.board.current.createArrow(fromPage, toPage);
     }
 
-    downloadFile() {
+    async updateFileContents() {
         var arrows = this.board.current.getAllConnections();
         var coordinates = this.board.current.getAllCoordinates();
         var sections = this.state.sections;
@@ -302,17 +261,85 @@ export default class Screen extends React.Component {
         sections["coordinates"] = coordinates;
 
         var data = JSON.stringify(sections);
-        var blob = new Blob([data], {type: 'application/json'});
-        var url = URL.createObjectURL(blob);
 
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'CJB.json';
-        a.click();
+        const writable = await this.state.fileHandle.createWritable();
+        await writable.write(data);
+        await writable.close();
     }
 
-    createConnection(fromPage, toPage) {
-        this.board.current.createArrow(fromPage, toPage);
+    async createNewFile() {
+        // Create a new file and keep a file handle reference
+        let fileHandler = null;
+        const options = {
+            types: [
+                {
+                    description: 'JSON Files',
+                    accept: {
+                        'application/json': ['.json'],
+                    },
+                }
+            ]
+        };
+
+        fileHandler = await window.showSaveFilePicker(options);
+        this.setState({fileHandle: fileHandler, fileLoaded: true});
+    }
+
+    async loadFile() {
+        let fileHandle = null;
+        const options = {
+            types: [
+                {
+                    description: 'JSON Files',
+                    accept: {
+                        'application/json': ['.json'],
+                    },
+                }
+            ]
+        };
+
+        [fileHandle] = await window.showOpenFilePicker(options);
+        const file = await fileHandle.getFile();
+        const contents = await file.text();
+
+        if (contents !== "") {
+            const data = JSON.parse(contents);
+
+            var coords = data["coordinates"] || [];
+            for (let i = 0; i < coords.length; i++) {
+                this.board.current.updatePageCoords(i, coords[i][0], coords[i][1]);
+            }
+            delete data["coordinates"];
+
+            this.board.current.loadArrows(data["arrows"] || []);
+            delete data["arrows"];
+
+            var filters = {};
+
+            var pages = Object.keys(data);
+            for (let i = 0; i < pages.length; i++) {
+                var page = pages[i];
+                var sections = Object.keys(data[page]);
+                for (let j = 0; j < sections.length; j++) {
+                    var section = sections[j];
+                    var entries = data[page][section];
+                    for (let k = 0; k < entries.length; k++) {
+                        var entry = entries[k];
+                        if (!filters[section]) filters[section] = [];
+                        if (!filters[section].includes(entry["Entry"])) filters[section].push(entry["Entry"]);
+                    }
+                }
+            }
+
+
+            this.setState({sections: data, filters: filters}, () => {
+                for (let i = 0; i <= 100; i++) {
+                    this.board.current.updateArrows(i);
+                }
+            });
+        }
+
+        this.setState({fileLoaded: true, fileHandle: fileHandle})
     }
 
     render() {
@@ -334,28 +361,6 @@ export default class Screen extends React.Component {
                             />
 
                         </Box>
-
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="upload"
-                            sx={{marginLeft: '10px'}}
-                            onClick={() => this.loadFile()}
-                        >
-                            <UploadFileRoundedIcon />
-                        </IconButton>
-
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="download"
-                            sx={{marginLeft: '10px'}}
-                            onClick={() => this.downloadFile()}
-                        >
-                            <DownloadForOfflineRoundedIcon />
-                        </IconButton>
     
                         <IconButton
                             size="large"
@@ -370,15 +375,33 @@ export default class Screen extends React.Component {
     
                     </Toolbar>
                 </AppBar>
-                <Main open={this.state.open} sx={{height: '100%'}}>
-                    <DrawerHeader />
-                    <Board ref={this.board} pages={TEXTS} screen={this} sections={this.state.sections} />
-                </Main>
+                <Box sx={{
+                    display: (this.state.fileLoaded ? 'none' : 'flex'),
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    border: '1px solid black',
+                    height: '100vh',
+                    width: '100vw',
+                }}>
+                    <h3>Before starting, do you want to load or create a new file?</h3>
+                    <Button variant="contained" sx={{textTransform: 'none', width: '200px', mt: '1rem'}} onClick={() => this.createNewFile()}>Create a new file</Button>
+                    <Button variant="contained" sx={{textTransform: 'none', width: '200px', mt: '1rem'}} onClick={() => this.loadFile()}>Open an existing file</Button>
+                </Box>
 
-                <SectionPopup ref={this.popup} screen={this} />
-                <HelpPopup ref={this.help}/>
+                <Box sx={{
+                    display: (this.state.fileLoaded ? 'flex' : 'none'),
+                }}>
+                    <Main open={this.state.open} sx={{height: '100%'}}>
+                        <DrawerHeader />
+                        <Board ref={this.board} pages={TEXTS} screen={this} sections={this.state.sections} />
+                    </Main>
 
-                <PageDrawer ref={this.drawer} width={drawerWidth} screen={this} />
+                    <SectionPopup ref={this.popup} screen={this} />
+                    <HelpPopup ref={this.help}/>
+    
+                    <PageDrawer ref={this.drawer} width={drawerWidth} screen={this} />
+                </Box>
             </Box>
         );
     }
